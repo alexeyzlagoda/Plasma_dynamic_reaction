@@ -64,11 +64,10 @@ def energy(t, Data):
     e = p / (gamma - 1) + 0.5 * rho * V**2 + 0.5 * B**2 / mu
     de_dt = -grad_x((e + p) * V) - grad_y((e + p) * V)
     return np.array(de_dt).ravel()
+
 def F(t,x):
-    x = np.concatenate([continuity(t,x),
-    momentum(t,x),energy(t,x),
-    induction(t,x)])
-    return x
+    return np.concatenate([continuity(t,x), momentum(t,x), energy(t,x), induction(t,x)])
+    
 def solve(Duration, resolution, rho_0, V_0, p_0, B_0):
     Time = np.linspace(0,Duration, int(Duration/resolution))
     Data = np.concatenate([np.array(rho_0).ravel(), np.array(V_0).ravel(), np.array(p_0).ravel(), np.array(B_0).ravel()])
