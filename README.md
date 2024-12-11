@@ -1,2 +1,4 @@
-# Plasma_dynamic_reaction
-This is repository of proj where we make a physics modelling library for dynamic variable plasma includes Thermonuclear reactions
+# Python Universal Dynamic Original Reaction Simulation (PUDOR Simulation) 
+## Описание
+В этом репозитории предполагается дополнить уравнение Магнитной Гидродинамики некоторыми уравнениями для возможности учитывать возмущения системы, возникающимим из-за слияний томов дейтерия и трития
+
