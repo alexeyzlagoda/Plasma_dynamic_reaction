@@ -1,16 +1,15 @@
 from Config import *
 import numpy as np
 from scipy.integrate import solve_ivp
-from Solver1 import *
+from TempDestribution import *
 from tqdm import tqdm
-from Struct import *
 
 # Граничные условия (замкнутые стенки)
-def apply_boundary_conditions(rho, V, B, p):
-    for var in [rho, V, B, p]:
+def apply_boundary_conditions(dencity:np.array, velocity:np.array, magnetic_field:np.array, pressure:np.array):
+    for var in [dencity, velocity, magnetic_field, pressure]:
         var[0, :] = var[-1, :] = 0
         var[:, 0] = var[:, -1] = 0
-    return rho, V, B, p
+    return dencity, velocity, magnetic_field, pressure
 
 # Производные по пространству
 def grad_x(f):
@@ -23,36 +22,40 @@ def laplacian(f):
     return (np.roll(f, -1, axis=0) - 2 * f + np.roll(f, 1, axis=0)) / dx**2 + \
            (np.roll(f, -1, axis=1) - 2 * f + np.roll(f, 1, axis=1)) / dy**2
 
-def continuity(rho, V):
-    drho_dt = - (grad_x(rho * V) + grad_y(rho * V))
+def continuity(dencity:np.array, velocity:np.array) -> np.array:
+    drho_dt = - (grad_x(dencity * velocity) + grad_y(dencity * velocity))
     return drho_dt
 
 # Уравнение движения
-def momentum(rho, V, p, B):
-    dV_dt = - V * grad_x(V) - V * grad_y(V) \
-            - grad_x(p) / rho + nu * laplacian(V)
+def momentum(dencity:np.array, velocity:np.array, pressure:np.array, magnetic_field:np.array)-> np.array:
+    dV_dt = - velocity * grad_x(velocity) - velocity * grad_y(velocity) \
+            - grad_x(pressure) / dencity + nu * laplacian(velocity)
     return dV_dt
 
 # Уравнение индукции
-def induction(B, V):
-    dB_dt = grad_x(V * B) - grad_y(V * B) + eta * laplacian(B)
+def induction(magnetic_field:np.array, velocity:np.array)-> np.array:
+    dB_dt = grad_x(velocity * magnetic_field) - grad_y(velocity * magnetic_field) + eta * laplacian(magnetic_field)
     return dB_dt
 
 # Уравнение энергии
-def energy(rho, V, p, B):
-    e = p / (gamma - 1) + 0.5 * rho * V**2 + 0.5 * B**2 / mu
-    de_dt = -grad_x((e + p) * V) - grad_y((e + p) * V)
+def energy(dencity:np.array, velocity:np.array, pressure:np.array, magnetic_field:np.array)-> np.array:
+    e = pressure / (gamma - 1) + 0.5 * dencity * velocity**2 + 0.5 * magnetic_field**2 / mu
+    de_dt = -grad_x((e + pressure) * velocity) - grad_y((e + pressure) * velocity)
     return de_dt
 
-def F(t,IncData):
-    rho, V, p, B, T, n_D,  n_T , n_He = IncData.reshape((8,Nx, Ny))[0],IncData.reshape((8,Nx, Ny))[1], IncData.reshape((8,Nx, Ny))[2], IncData.reshape((8,Nx, Ny))[3], IncData.reshape((8,Nx, Ny))[4], IncData.reshape((8,Nx, Ny))[5], IncData.reshape((8,Nx, Ny))[6], IncData.reshape((8,Nx, Ny))[7]
-    dT, dn_D,  dn_T , dn_He  = UpdateTemp(T, n_D,  n_T , n_He)
-    dE = energy(rho, V, p, B) + 3 * k_B * T
-    dB = induction(B, V)
-    dV = momentum(rho, V, p, B)
-    drho = continuity(rho, V)
+def F(Temperature,IncData)-> np.array:
+    dencity, velocity, pressure =  np.array(),np.array(),np.array()
+    magnetic_field, Temperature, n_D  = np.array(),np.array(),np.array()
+    n_T , n_He = np.array(), np.array()
+    for var, n  in zip([dencity, velocity, pressure, magnetic_field, Temperature, n_D,  n_T , n_He], range(8)):
+        var = IncData.reshape((8,Nx, Ny))[n]
+    dT, dn_D,  dn_T , dn_He  = UpdateTemp(Temperature, n_D,  n_T , n_He)
+    dE = energy(dencity, velocity, pressure, magnetic_field) + 3 * k_B * Temperature
+    dB = induction(magnetic_field, velocity)
+    dV = momentum(dencity, velocity, pressure, magnetic_field)
+    drho = continuity(dencity, velocity)
     return np.concatenate([drho.ravel(), dV.ravel(), np.zeros((Nx, Ny)).ravel(), dB.ravel(), dT.ravel(), dn_D.ravel(),  dn_T.ravel() , dn_He.ravel()])
 
-def solveMe(Duration, Data:SolverObj):    
+def solveMe(Duration, Data):    
     sol = solve_ivp(F,(0, Duration),Data)
     return sol
