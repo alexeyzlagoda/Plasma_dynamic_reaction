@@ -24,9 +24,3 @@ def UpdateTemp(T_e, n_D, n_T,n_He):
     # print()
     n_D, n_T, n_He = n_D - (2* R_DD + R_DT), n_T - R_DT, R_DT + n_He
     return R_DT*MevToK(17.6) + R_DD * MevToK(7.3), n_D, n_T, n_He
-
-def SolvMain(V, dt, T_e, n_D, n_T, n_He, B, p):
-    pass    
-    
-def Sim(Config:SolverConf):
-    pass

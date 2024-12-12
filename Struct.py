@@ -1,21 +1,37 @@
 import numpy as np
 from Config import *
-class SolverConf:
-    Lx, Ly = 1.0,1.0
-    Nx, Ny = 1000, 1000  # Число ячеек сетки
-    n_D = np.ones((Nx, Ny)) * 1e19  # Плотность дейтерия (м^-3)
-    n_T = np.ones((Nx, Ny)) * 1e19  # Плотность трития (м^-3)
-    n_He = np.zeros((Nx, Ny))       # Плотность гелия (м^-3)
-    T_e = np.ones((Nx, Ny)) * 1e8   # Температура (К)
-    vx = np.zeros((Nx, Ny))         # Скорость по x (м/с)
-    vy = np.zeros((Nx, Ny))         # Скорость по y (м/с)
-    Bx = np.ones((Nx, Ny)) * 1.0    # Магнитное поле по x (Тл)
-    By = np.zeros((Nx, Ny))         # Магнитное поле по y (Тл)
-    P = n_D * k_B * T_e             # Давление (Па)
-
-    source_D = np.zeros((Nx, Ny))
-    source_T = np.zeros((Nx, Ny))
-    sink = np.zeros((Nx, Ny))
-    source_D[Nx // 4:Nx // 2, Ny // 4:Ny // 2] = 1e22
-    source_T[Nx // 2:Nx // 4 * 3, Ny // 2:Ny // 4 * 3] = 1e22
-    
+class SolverObj:
+    Nx, Ny = 50,50
+    B    = np.zeros((Nx,Ny))
+    rho  = np.zeros((Nx,Ny))
+    Temp = np.zeros((Nx,Ny))
+    p    = np.zeros((Nx,Ny))
+    V    = np.zeros((Nx,Ny))
+    n_D  = np.zeros((Nx,Ny))
+    n_T  = np.zeros((Nx,Ny))
+    n_He = np.zeros((Nx,Ny))
+    E    = np.zeros((Nx,Ny))
+    def __init__(self):
+        pass 
+    def __new__(self):
+        pass
+    def __sum__(self, A):
+        self.B    += A.B   
+        self.rho  += A.rho 
+        self.Temp += A.Temp
+        self.p    += A.p   
+        self.V    += A.V   
+        self.n_D  += A.n_D 
+        self.n_T  += A.n_T 
+        self.n_He += A.n_He
+        self.E    += A.E    
+    def __mul__(self,A):
+        self.B    *= A
+        self.rho  *= A
+        self.Temp *= A
+        self.p    *= A
+        self.V    *= A
+        self.n_D  *= A
+        self.n_T  *= A
+        self.n_He *= A
+        self.E    *= A
