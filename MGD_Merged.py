@@ -43,7 +43,7 @@ def energy(dencity:np.array, velocity:np.array, pressure:np.array, magnetic_fiel
     de_dt = -grad_x((e + pressure) * velocity) - grad_y((e + pressure) * velocity)
     return de_dt
 
-def F(Temperature,IncData)-> np.array:
+def F(Popugay,IncData)-> np.array:
     dencity, velocity, pressure =  np.array(),np.array(),np.array()
     magnetic_field, Temperature, n_D  = np.array(),np.array(),np.array()
     n_T , n_He = np.array(), np.array()
