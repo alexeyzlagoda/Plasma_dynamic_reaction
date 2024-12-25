@@ -5,15 +5,19 @@ from TempDestribution import *
 from tqdm import tqdm
 
 # Apply boundary conditions (closed walls)
-def apply_boundary_conditions(density:np.array, velocity:np.array, magnetic_field:np.array, pressure:np.array):
-    density[0, :] = density[-1, :] = 0
-    velocity[0, :] = velocity[-1, :] = 0
-    magnetic_field[0, :] = magnetic_field[-1, :] = 0
-    pressure[0, :] = pressure[-1, :] = 0
-    density[:, 0] = density[:, -1] = 0
-    velocity[:, 0] = velocity[:, -1] = 0
-    magnetic_field[:, 0] = magnetic_field[:, -1] = 0
-    pressure[:, 0] = pressure[:, -1] = 0
+def apply_boundary_conditions(density:np.array,
+                               velocity:np.array, 
+                               magnetic_field:np.array, 
+                               pressure:np.array):
+
+    density[0, :]           = density[-1, :] = 0
+    velocity[0, :]          = velocity[-1, :] = 0
+    magnetic_field[0, :]    = magnetic_field[-1, :] = 0
+    pressure[0, :]          = pressure[-1, :] = 0
+    density[:, 0]           = density[:, -1] = 0
+    velocity[:, 0]          = velocity[:, -1] = 0
+    magnetic_field[:, 0]    = magnetic_field[:, -1] = 0
+    pressure[:, 0]          = pressure[:, -1] = 0
     return density, velocity, magnetic_field, pressure
 
 # Spatial derivatives
@@ -31,7 +35,10 @@ def continuity(density:np.array, velocity:np.array) ->np.array:
     return - (grad_x(density * velocity) + grad_y(density * velocity))
 
 # Momentum equation
-def momentum(rho_matrix:np.array, speed_matrix:np.array, p_matrix:np.array, H_matrix:np.array) -> np.array:
+def momentum(rho_matrix:np.array, 
+             speed_matrix:np.array, 
+             p_matrix:np.array, 
+             H_matrix:np.array) -> np.array:
     du_dx = grad_x(speed_matrix)
     du_dy = grad_y(speed_matrix)
     
@@ -64,6 +71,8 @@ def momentum(rho_matrix:np.array, speed_matrix:np.array, p_matrix:np.array, H_ma
 def induction(magnetic_field:np.array, velocity:np.array)->np.array:
     return grad_x(velocity * magnetic_field) - grad_y(velocity * magnetic_field) + eta * laplacian(magnetic_field)
 
+
+
 def F(popugay, IncData:np.array) -> np.array:    
     density, velocity, pressure, magnetic_field, temperature, n_D, n_T , n_He = decode_arrays(IncData, Nx, Ny)
 
@@ -75,7 +84,8 @@ def F(popugay, IncData:np.array) -> np.array:
     dV_magnitude = momentum(density, velocity, pressure, magnetic_field)
     
     drho = continuity(density, velocity)
-
+    nn_D, nn_T, nn_He = density/m_D, density/m_T, density/m_He
+    dn_D,dn_T, dn_He = nn_D-n_D, nn_T-n_T, nn_He - n_He
     # Concatenate results into a single array for integration step
     x_concatenated = concatenate_arrays(drho, dV_magnitude, dp, dB, dT, dn_D, dn_T, dn_He)
     return x_concatenated
