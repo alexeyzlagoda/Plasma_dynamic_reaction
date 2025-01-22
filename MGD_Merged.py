@@ -91,5 +91,5 @@ def F(popugay, IncData:np.array) -> np.array:
     return x_concatenated
 
 def solveMe(duration, data:np.array):    
-    sol = scipy.integrate.solve_ivp(F, duration, data)
+    sol = scipy.integrate.solve_ivp(F, duration, data, t_eval=np.linspace(0,duration[1], 0.001))
     return sol
