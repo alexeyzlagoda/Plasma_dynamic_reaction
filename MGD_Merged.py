@@ -4,6 +4,9 @@ import scipy.integrate
 from TempDestribution import *
 from tqdm import tqdm
 
+Output_Iteration = [] 
+
+
 # Apply boundary conditions (closed walls)
 def apply_boundary_conditions(density:np.array,
                                velocity:np.array, 
@@ -18,6 +21,7 @@ def apply_boundary_conditions(density:np.array,
     velocity[:, 0]          = velocity[:, -1] = 0
     magnetic_field[:, 0]    = magnetic_field[:, -1] = 0
     pressure[:, 0]          = pressure[:, -1] = 0
+    
     return density, velocity, magnetic_field, pressure
 
 # Spatial derivatives
@@ -71,11 +75,10 @@ def momentum(rho_matrix:np.array,
 def induction(magnetic_field:np.array, velocity:np.array)->np.array:
     return grad_x(velocity * magnetic_field) - grad_y(velocity * magnetic_field) + eta * laplacian(magnetic_field)
 
-
-
 def F(popugay, IncData:np.array) -> np.array:    
     density, velocity, pressure, magnetic_field, temperature, n_D, n_T , n_He = decode_arrays(IncData, Nx, Ny)
 
+    n_D[:,0] +=1e3
     dT, dn_D, dn_T , dn_He  = UpdateTemp(temperature, n_D, n_T , n_He)
     
     dB = induction(magnetic_field, velocity)
@@ -87,9 +90,11 @@ def F(popugay, IncData:np.array) -> np.array:
     nn_D, nn_T, nn_He = density/m_D, density/m_T, density/m_He
     dn_D,dn_T, dn_He = nn_D-n_D, nn_T-n_T, nn_He - n_He
     # Concatenate results into a single array for integration step
+    dImp = m_D * sum(n_D[:,-1]) + m_T * sum(n_T[:,-1]) + m_He * sum(n_He[:,-1]) 
+    Output_Iteration.append(dImp)
     x_concatenated = concatenate_arrays(drho, dV_magnitude, dp, dB, dT, dn_D, dn_T, dn_He)
     return x_concatenated
 
 def solveMe(duration, data:np.array):    
     sol = scipy.integrate.solve_ivp(F, duration, data, t_eval=np.linspace(0,duration[1], 1000))
-    return sol
+    return sol, Output_Iteration

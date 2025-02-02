@@ -16,7 +16,7 @@ Nx, Ny = 500, 500   # Число точек сетки
 dx, dy = Lx / Nx, Ly / Ny
 def MevToK(mev):
     return 11604525006.17*mev
-def concatenate_arrays(drho, dV_magnitude, dp, dB, dT, dn_D, dn_T, dn_He):
+def concatenate_arrays(drho, dV_magnitude, dp, dB, dT, dn_D, dn_T, dn_He, Particles):
     """
     Concatenate multiple 2D arrays into a single 1D array.
 
@@ -41,7 +41,8 @@ def concatenate_arrays(drho, dV_magnitude, dp, dB, dT, dn_D, dn_T, dn_He):
         dT.flatten(), 
         dn_D.flatten(), 
         dn_T.flatten(), 
-        dn_He.flatten()
+        dn_He.flatten(),
+        Particles.flatten()
     ])
 
 def decode_arrays(concatenated_array, Nx, Ny):
@@ -68,8 +69,9 @@ def decode_arrays(concatenated_array, Nx, Ny):
     dn_D = concatenated_array[size*5:size*6].reshape((Nx, Ny))
     dn_T = concatenated_array[size*6:size*7].reshape((Nx, Ny))
     dn_He = concatenated_array[size*7:size*8].reshape((Nx, Ny))
+    Particles = concatenated_array[size*8:].reshape((Nx, Ny))
 
-    return drho, dV_magnitude, dp, dB, dT, dn_D, dn_T, dn_He
+    return drho, dV_magnitude, dp, dB, dT, dn_D, dn_T, dn_He, Particles
 
 def decode_solve_ivp_result(sol, Nx, Ny):
     """
